@@ -519,6 +519,5 @@ if __name__ == "__main__":
     anomalous_requests_test = anomalous_requests[split:]
     normal_requests_test = read_data("normal_test.txt", 0)
     normal_requests_train = read_data("normal_train.txt", 0)
-    save_to_file("trainning.csv", anomalous_requests_train +
-                 normal_requests_train)
+    save_to_file("trainning.csv", anomalous_requests_train + normal_requests_train)
     save_to_file("testing.csv", anomalous_requests_test+normal_requests_test)
