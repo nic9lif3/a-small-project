@@ -521,6 +521,7 @@ def save_to_file(outfile, data):
         for d in data:
             writer.writerow(d)
 
+
 if __name__ == "__main__":
     anomalous_requests = read_data("anomalous_test.txt", 1)
     normal_requests=read_data("normal_test.txt", 0)+read_data("normal_train.txt", 0)
