@@ -1,5 +1,5 @@
 import csv
-import urllib.parse
+from urllib.parse import urlparse, unquote
 import string
 import traceback
 from random import shuffle
@@ -15,8 +15,14 @@ STANDARD_HEADERS = ["Accept", "Accept-Charset", "Accept-Datetime", "Accept-Encod
 
 # STANDARD_HEADERS=[]
 
-def urldecode(url):
-    return urllib.parse.unquote(url)
+def urldecode(query):
+    while True:
+        pre_query=query
+        query=unquote(query)
+        if pre_query==query:
+            break
+    return query
+
 
 
 def read_file_text(filename):
@@ -368,18 +374,21 @@ def num_segment(request):
 
 
 def is_file(request):
-    if "." in request["url"].split("/")[-1]:
-        return [1]
-    else:
-        return [0]
+    segs = request["url"].split("/")
+    for seg in segs:
+        if "." in seg:
+            return [1]
+    return [0]
 
 
 def file_extension(request):
-    if is_file(request)[0] == 1:
-        s = request["url"].split("?")[0].split(".")
-        s.pop(0)
-        return [".".join(s)]
-    return [-1]
+    url=request["url"]
+    o=urlparse(url)
+    destination=o.path.split('/')[-1].strip()
+    if '.' not in destination:
+        return [0,-1]
+    else:
+        return [1,destination.split('.')[-1].lower()]
 
 
 def num_parameters(request):
@@ -481,7 +490,7 @@ def read_data(file_name, request_type):
     blocks = read_file_text(file_name)
     for block in tqdm(blocks):
         request = normalize_request(block)
-        requests.append(method(request) + length_path(request) + printable_characters_ratio_path(request) + non_printable_characters_ratio_path(request) + letter_ratio_path(request) + digit_ratio_path(request) + num_segment(request) + is_file(request) + file_extension(request) + num_parameters(request) + length_query(request) + printable_characters_ratio_query(request) + non_printable_characters_ratio_query(request) + letter_ratio_query(request) + digit_ratio_query(request) + num_headers(request) + standard_headers_ratio(request) + non_standard_headers_ratio(request)+ length_header(request) + printable_characters_ratio_header(request) + non_printable_characters_ratio_header(request) + letter_ratio_header(request) + digit_ratio_header(request)+ is_standard_header(request) + is_persistent_connection(request) + content_type(request) + length_body(request) + printable_characters_ratio_body(request) + non_printable_characters_ratio_body(request) + letter_ratio_body(request) + digit_ratio_body(request) + [request_type])
+        requests.append(method(request) + length_path(request) + printable_characters_ratio_path(request) + non_printable_characters_ratio_path(request) + letter_ratio_path(request) + digit_ratio_path(request) + num_segment(request) + file_extension(request) + num_parameters(request) + length_query(request) + printable_characters_ratio_query(request) + non_printable_characters_ratio_query(request) + letter_ratio_query(request) + digit_ratio_query(request) + num_headers(request) + standard_headers_ratio(request) + non_standard_headers_ratio(request)+ length_header(request) + printable_characters_ratio_header(request) + non_printable_characters_ratio_header(request) + letter_ratio_header(request) + digit_ratio_header(request)+ is_standard_header(request) + is_persistent_connection(request) + content_type(request) + length_body(request) + printable_characters_ratio_body(request) + non_printable_characters_ratio_body(request) + letter_ratio_body(request) + digit_ratio_body(request) + [request_type])
     return requests
 
 
@@ -513,8 +522,10 @@ def save_to_file(outfile, data):
             writer.writerow(d)
 
 if __name__ == "__main__":
-    anomalous_requests = shuffle(read_data("anomalous_test.txt", 1))
-    normal_requests=sum(read_data("normal_test.txt", 0)+read_data("normal_train.txt", 0))
+    anomalous_requests = read_data("anomalous_test.txt", 1)
+    normal_requests=read_data("normal_test.txt", 0)+read_data("normal_train.txt", 0)
+    # shuffle(anomalous_requests)
+    # shuffle(normal_requests)
     split = len(anomalous_requests)*10//7
     anomalous_requests_train = anomalous_requests[:split]
     anomalous_requests_test = anomalous_requests[split:]
