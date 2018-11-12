@@ -524,12 +524,13 @@ def save_to_file(outfile, data):
 if __name__ == "__main__":
     anomalous_requests = read_data("anomalous_test.txt", 1)
     normal_requests=read_data("normal_test.txt", 0)+read_data("normal_train.txt", 0)
-    # shuffle(anomalous_requests)
-    # shuffle(normal_requests)
-    split = len(anomalous_requests)*10//7
-    anomalous_requests_train = anomalous_requests[:split]
-    anomalous_requests_test = anomalous_requests[split:]
-    normal_requests_train = normal_requests[:split]
-    normal_requests_test = normal_requests[split:]
+    shuffle(anomalous_requests)
+    shuffle(normal_requests)
+    split_anomalous = len(anomalous_requests)*7//10
+    split_normal = len(normal_requests)*7//10
+    anomalous_requests_train = anomalous_requests[:split_anomalous]
+    anomalous_requests_test = anomalous_requests[split_anomalous:]
+    normal_requests_train = normal_requests[:split_normal]
+    normal_requests_test = normal_requests[split_normal:]
     save_to_file("trainning.csv", anomalous_requests_train + normal_requests_train)
     save_to_file("testing.csv", anomalous_requests_test+normal_requests_test)
